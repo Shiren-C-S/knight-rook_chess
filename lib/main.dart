@@ -4,6 +4,13 @@ void main() {
   runApp(ChessGame());
 }
 
+class ChessAssets {
+  static const String whiteKnight = '/Users/shiren/Documents/Flutter/chess_horse/images/knight_white.png';
+  static const String blackKnight = '/Users/shiren/Documents/Flutter/chess_horse/images/knight_black.png';
+  static const String whiteRook = '/Users/shiren/Documents/Flutter/chess_horse&Bishop/images/rook_white.png';
+  static const String blackRook = '/Users/shiren/Documents/Flutter/chess_horse&Bishop/images/rook_black.png';
+}
+
 class ChessGame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -72,10 +79,7 @@ class ChessBoardPage extends StatefulWidget {
 class _ChessBoardPageState extends State<ChessBoardPage> {
   List<List<int?>> board = [];
   List<List<bool>> validMoves = [];
-  List<List<int?>> knightPositions = [];
-  int? selectedKnightX;
-  int? selectedKnightY;
-  bool whiteTurn = true; // Track whose turn it is
+  bool whiteTurn = true;
 
   @override
   void initState() {
@@ -87,34 +91,45 @@ class _ChessBoardPageState extends State<ChessBoardPage> {
     setState(() {
       board = List.generate(widget.boardSize, (_) => List.generate(widget.boardSize, (_) => null));
       validMoves = List.generate(widget.boardSize, (_) => List.generate(widget.boardSize, (_) => false));
-      knightPositions = [
-        [0, 0], // White knight 1
-        [0, widget.boardSize - 1], // White knight 2
-        [widget.boardSize - 1, 0], // Black knight 1
-        [widget.boardSize - 1, widget.boardSize - 1], // Black knight 2
-      ];
-      board[0][0] = 1; // White knight 1
-      board[0][widget.boardSize - 1] = 1; // White knight 2
-      board[widget.boardSize - 1][0] = -1; // Black knight 1
-      board[widget.boardSize - 1][widget.boardSize - 1] = -1; // Black knight 2
+
+      // Place rooks (elephants)
+      if (widget.boardSize > 4) {
+        board[0][0] = 2; // White rook 1
+        board[0][widget.boardSize - 1] = 2; // White rook 2
+        board[widget.boardSize - 1][0] = -2; // Black rook 1
+        board[widget.boardSize - 1][widget.boardSize - 1] = -2; // Black rook 2
+      }
+
+      // Place knights
+      board[0][1] = 1; // White knight 1
+      board[0][widget.boardSize - 2] = 1; // White knight 2
+      board[widget.boardSize - 1][1] = -1; // Black knight 1
+      board[widget.boardSize - 1][widget.boardSize - 2] = -1; // Black knight 2
     });
   }
 
   void _showValidMoves(int x, int y) {
     setState(() {
       validMoves = List.generate(widget.boardSize, (_) => List.generate(widget.boardSize, (_) => false));
-      // Calculate all valid L-shaped moves for the knight
-      List<List<int>> knightMoves = [
-        [x + 2, y + 1],
-        [x + 2, y - 1],
-        [x - 2, y + 1],
-        [x - 2, y - 1],
-        [x + 1, y + 2],
-        [x + 1, y - 2],
-        [x - 1, y + 2],
-        [x - 1, y - 2]
-      ];
-      for (var move in knightMoves) {
+      List<List<int>> possibleMoves = [];
+
+      // Determine if it's a knight or a rook
+      if (board[x][y] == 1 || board[x][y] == -1) {
+        // Knight moves
+        possibleMoves = [
+          [x + 2, y + 1], [x + 2, y - 1], [x - 2, y + 1], [x - 2, y - 1],
+          [x + 1, y + 2], [x + 1, y - 2], [x - 1, y + 2], [x - 1, y - 2]
+        ];
+      } else if (board[x][y] == 2 || board[x][y] == -2) {
+        // Rook moves (Horizontal and Vertical)
+        for (int i = 0; i < widget.boardSize; i++) {
+          if (i != x) possibleMoves.add([i, y]); // Vertical moves
+          if (i != y) possibleMoves.add([x, i]); // Horizontal moves
+        }
+      }
+
+      // Validate possible moves
+      for (var move in possibleMoves) {
         int newX = move[0];
         int newY = move[1];
         if (newX >= 0 && newX < widget.boardSize && newY >= 0 && newY < widget.boardSize) {
@@ -124,14 +139,13 @@ class _ChessBoardPageState extends State<ChessBoardPage> {
     });
   }
 
-  void _moveKnight(int x, int y) {
+  void _movePiece(int x, int y) {
     setState(() {
-      // Move knight and handle capture
-      if (board[x][y] == null || board[x][y] != board[selectedKnightX!][selectedKnightY!]) {
-        board[x][y] = board[selectedKnightX!][selectedKnightY!];
-        board[selectedKnightX!][selectedKnightY!] = null; // Clear previous position
-        selectedKnightX = null;
-        selectedKnightY = null;
+      if (board[x][y] == null || board[x][y] != board[selectedX!][selectedY!]) {
+        board[x][y] = board[selectedX!][selectedY!];
+        board[selectedX!][selectedY!] = null; // Clear previous position
+        selectedX = null;
+        selectedY = null;
         validMoves = List.generate(widget.boardSize, (_) => List.generate(widget.boardSize, (_) => false)); // Clear valid moves
 
         // Check for win condition
@@ -144,8 +158,8 @@ class _ChessBoardPageState extends State<ChessBoardPage> {
   }
 
   void _checkWinCondition() {
-    bool whiteWin = !board.any((row) => row.contains(1));
-    bool blackWin = !board.any((row) => row.contains(-1));
+    bool whiteWin = !board.any((row) => row.contains(2)) && !board.any((row) => row.contains(1));
+    bool blackWin = !board.any((row) => row.contains(-2)) && !board.any((row) => row.contains(-1));
 
     if (whiteWin || blackWin) {
       String winner = whiteWin ? "Black Wins!" : "White Wins!";
@@ -170,6 +184,9 @@ class _ChessBoardPageState extends State<ChessBoardPage> {
     }
   }
 
+  int? selectedX;
+  int? selectedY;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -191,40 +208,46 @@ class _ChessBoardPageState extends State<ChessBoardPage> {
               itemBuilder: (context, index) {
                 int x = index ~/ widget.boardSize;
                 int y = index % widget.boardSize;
-                int? knight = board[x][y];
+                int? piece = board[x][y];
                 bool isValidMove = validMoves[x][y];
 
                 return GestureDetector(
                   onTap: () {
-                    if (knight != null && ((knight == 1 && whiteTurn) || (knight == -1 && !whiteTurn))) {
-                      if (selectedKnightX == null) {
-                        // Select knight to move
+                    if (piece != null && ((piece > 0 && whiteTurn) || (piece < 0 && !whiteTurn))) {
+                      if (selectedX == null) {
+                        // Select piece to move
                         setState(() {
-                          selectedKnightX = x;
-                          selectedKnightY = y;
-                          _showValidMoves(x, y); // Show valid moves for the selected knight
+                          selectedX = x;
+                          selectedY = y;
+                          _showValidMoves(x, y); // Show valid moves for the selected piece
                         });
-                      } else if (selectedKnightX == x && selectedKnightY == y) {
-                        // Deselect knight
+                      } else if (selectedX == x && selectedY == y) {
+                        // Deselect piece
                         setState(() {
-                          selectedKnightX = null;
-                          selectedKnightY = null;
+                          selectedX = null;
+                          selectedY = null;
                           validMoves = List.generate(widget.boardSize, (_) => List.generate(widget.boardSize, (_) => false)); // Clear valid moves
                         });
                       } else if (isValidMove) {
-                        _moveKnight(x, y); // Move knight if the cell is a valid move
+                        _movePiece(x, y); // Move piece if the cell is a valid move
                       }
-                    } else if (selectedKnightX != null && selectedKnightY != null && isValidMove) {
-                      _moveKnight(x, y); // Move knight if the cell is a valid move
+                    } else if (selectedX != null && selectedY != null && isValidMove) {
+                      _movePiece(x, y); // Move piece if the cell is a valid move
                     }
                   },
                   child: Container(
                     margin: EdgeInsets.all(2),
                     color: (x + y) % 2 == 0 ? Colors.grey[300] : Colors.grey[700],
                     child: Center(
-                      child: knight != null
+                      child: piece != null
                           ? Image.asset(
-                              knight == 1 ? '/Users/shiren/Documents/Flutter/chess_horse/images/knight_white.png' : '/Users/shiren/Documents/Flutter/chess_horse/images/knight_black.png',
+                              piece == 1
+                                  ? ChessAssets.whiteKnight
+                                  : piece == -1
+                                      ? ChessAssets.blackKnight
+                                      : piece == 2
+                                          ? ChessAssets.whiteRook
+                                          : ChessAssets.blackRook,
                               width: 40,
                               height: 40,
                             )
@@ -235,7 +258,7 @@ class _ChessBoardPageState extends State<ChessBoardPage> {
                                     color: Colors.green.withOpacity(0.7),
                                   ),
                                 )
-                              : Container(),
+                              : null,
                     ),
                   ),
                 );
