@@ -1,6 +1,3 @@
-This is the demo of the Knight Only Chess Game!
+This is the demo of the Knight & Rook Only Chess Game!
 
-
-https://github.com/user-attachments/assets/0e1caf27-5cb6-443f-9db6-f0b0e7793679
-
-
+https://github.com/user-attachments/assets/a3b7876a-dc50-490f-9137-7c62665fb54b
