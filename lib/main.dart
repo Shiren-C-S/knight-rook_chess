@@ -5,10 +5,10 @@ void main() {
 }
 
 class ChessAssets {
-  static const String whiteKnight = '/Users/shiren/Documents/Flutter/chess_horse/images/knight_white.png';
-  static const String blackKnight = '/Users/shiren/Documents/Flutter/chess_horse/images/knight_black.png';
-  static const String whiteRook = '/Users/shiren/Documents/Flutter/chess_horse&Bishop/images/rook_white.png';
-  static const String blackRook = '/Users/shiren/Documents/Flutter/chess_horse&Bishop/images/rook_black.png';
+  static const String whiteKnight = 'images/knight_white.png';
+  static const String blackKnight = 'images/knight_black.png';
+  static const String whiteRook = 'images/rook_white.png';
+  static const String blackRook = 'images/rook_black.png';
 }
 
 class ChessGame extends StatelessWidget {
